@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="referrer" content="no-referrer" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"h0m3.win","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="在trojan-tutor.github.io基础上去除权限分离等步骤，记录在Oracle Cloud上搭建Trojan-GFW代理的过程。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Centos7 搭建Trojan 科学上网">
+<meta property="og:url" content="https://h0m3.win/posts/fs1wh3/">
+<meta property="og:site_name" content="h0m3">
+<meta property="og:description" content="在trojan-tutor.github.io基础上去除权限分离等步骤，记录在Oracle Cloud上搭建Trojan-GFW代理的过程。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/svg/1680687/1594180015695-5556ddd5-ab71-4bc7-83e8-2b33d6b5ab47.svg#align=left&display=inline&height=407&margin=%5Bobject%20Object%5D&name=%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86.svg&originHeight=150&originWidth=277&size=90573&status=done&style=none&width=752">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/1680687/1594183342815-bb98b506-d152-49a3-b082-c3994885555e.png#align=left&display=inline&height=686&margin=%5Bobject%20Object%5D&name=image.png&originHeight=686&originWidth=1037&size=56653&status=done&style=none&width=1037">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/1680687/1593767412933-f45b7c9d-6631-4166-8a98-bdac8aea54d7.png#align=left&display=inline&height=64&margin=%5Bobject%20Object%5D&name=image.png&originHeight=128&originWidth=596&size=32508&status=done&style=none&width=298">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/jpeg/1680687/1593673386072-16ea0b0f-c5f8-41ea-9e3f-8f17272ed68a.jpeg#align=left&display=inline&height=578&margin=%5Bobject%20Object%5D&name=firewall-cmd%20--permanent%20--add-port%3D80tcp.jpg&originHeight=578&originWidth=694&size=180503&status=done&style=none&width=694">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/1680687/1593673361834-cbea90ae-191f-475d-83a4-ce9de49bff7a.png#align=left&display=inline&height=783&margin=%5Bobject%20Object%5D&name=GNU%20nano%202.3.1.png&originHeight=1346&originWidth=1282&size=147205&status=done&style=none&width=746">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/1680687/1593673408761-af690770-79d0-48f7-a9af-738087bf45ee.png#align=left&display=inline&height=56&margin=%5Bobject%20Object%5D&name=usrsbinsestatus.png&originHeight=56&originWidth=584&size=13708&status=done&style=none&width=584">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/jpeg/1680687/1593673454039-89d3b53d-a911-4211-a1e0-1d452874ca0b.jpeg#align=left&display=inline&height=1392&margin=%5Bobject%20Object%5D&name=GNU%20nano%202.3.1.jpg&originHeight=1392&originWidth=1290&size=583076&status=done&style=none&width=1290">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/jpeg/1680687/1594179191255-3a929529-3600-4390-818a-7214c9ff6560.jpeg#align=left&display=inline&height=695&margin=%5Bobject%20Object%5D&name=GNU%20nano%202.3.1_%E5%89%AF%E6%9C%AC.jpg&originHeight=1390&originWidth=1482&size=155665&status=done&style=none&width=741">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/jpeg/1680687/1593673518571-e9bee900-6c41-42cf-9343-c4357f4f25fe.jpeg#align=left&display=inline&height=540&margin=%5Bobject%20Object%5D&name=systemctl%20restart%20nginx.jpg&originHeight=540&originWidth=1454&size=547649&status=done&style=none&width=1454">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/1680687/1593673670747-963341a4-c73c-407c-91c3-3279966efae5.png#align=left&display=inline&height=314&margin=%5Bobject%20Object%5D&name=Entering%20temp%20directory%20tmptmp.CJSMDRsSwC.png&originHeight=314&originWidth=1682&size=96071&status=done&style=none&width=1682">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/1680687/1594179510630-08f2821f-a1ea-40a1-8e86-05745b432bc8.png#align=left&display=inline&height=649&margin=%5Bobject%20Object%5D&name=GNU%20nano%202.3.1_%E5%89%AF%E6%9C%AC.png&originHeight=1298&originWidth=1412&size=215804&status=done&style=none&width=706">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/1680687/1593673767128-895acad2-f323-4515-9ed1-9d0e2342644c.png#align=left&display=inline&height=400&margin=%5Bobject%20Object%5D&name=systemctl%20restart%20trojan.png&originHeight=400&originWidth=1610&size=123648&status=done&style=none&width=1610">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/1680687/1593673895742-0077647f-1740-447d-80a3-dafd6005370a.png#align=left&display=inline&height=94&margin=%5Bobject%20Object%5D&name=51%200%20%20%20%20root.acme.shacme.sh.png&originHeight=94&originWidth=1120&size=25402&status=done&style=none&width=1120">
+<meta property="article:published_time" content="2020-07-02T06:59:52.000Z">
+<meta property="article:modified_time" content="2020-07-27T12:05:54.880Z">
+<meta property="article:author" content="emtry">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.nlark.com/yuque/0/2020/svg/1680687/1594180015695-5556ddd5-ab71-4bc7-83e8-2b33d6b5ab47.svg#align=left&display=inline&height=407&margin=%5Bobject%20Object%5D&name=%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86.svg&originHeight=150&originWidth=277&size=90573&status=done&style=none&width=752">
+
+<link rel="canonical" href="https://h0m3.win/posts/fs1wh3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Centos7 搭建Trojan 科学上网 | h0m3</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">h0m3</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://h0m3.win/posts/fs1wh3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="emtry">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="h0m3">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Centos7 搭建Trojan 科学上网
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-07-02 14:59:52" itemprop="dateCreated datePublished" datetime="2020-07-02T14:59:52+08:00">2020-07-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-27 20:05:54" itemprop="dateModified" datetime="2020-07-27T20:05:54+08:00">2020-07-27</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在<a href="https://trojan-tutor.github.io/2019/04/10/p41.html" target="_blank" rel="noopener">trojan-tutor.github.io</a>基础上去除权限分离等步骤，记录在<a href="https://www.oracle.com/cn/cloud/free/" target="_blank" rel="noopener">Oracle Cloud</a>上搭建<a href="https://github.com/trojan-gfw/trojan" target="_blank" rel="noopener">Trojan-GFW</a>代理的过程。</p>
+<a id="more"></a>
+
+<h3 id="综述"><a href="#综述" class="headerlink" title="综述"></a>综述</h3><h4 id="Trojan-工作原理浅析"><a href="#Trojan-工作原理浅析" class="headerlink" title="Trojan 工作原理浅析"></a>Trojan 工作原理浅析</h4><p>Trojan 是一个比较新的翻墙软件，在设计时采用了更适应国情的思路。在穿透 GFW 时，人们认为强加密和随机混淆可能会欺骗 GFW 的过滤机制。然而，Trojan 实现了这个思路的反面：它模仿了互联网上最常见的 HTTPS 协议，以诱骗 GFW 认为它就是 HTTPS，从而不被识别。<br><img src="https://cdn.nlark.com/yuque/0/2020/svg/1680687/1594180015695-5556ddd5-ab71-4bc7-83e8-2b33d6b5ab47.svg#align=left&display=inline&height=407&margin=%5Bobject%20Object%5D&name=%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86.svg&originHeight=150&originWidth=277&size=90573&status=done&style=none&width=752" alt="工作原理.svg"><br>如图所示，Trojan 工作在 443 端口，并且处理来自外界的 HTTPS 请求，如果是合法的 Trojan 请求，那么为该请求提供服务，否则将该流量转交给 web 服务器 Nginx，由 Nginx 为其提供服务。基于这个工作过程可以知道，Trojan 的一切表现均与 Nginx 一致，不会引入额外特征，从而达到无法识别的效果。当然，为了防止恶意探测，我们需要将 80 端口的流量全部重定向到 443 端口，并且服务器只暴露 80 和 443 端口，这样可以使得服务器与常见的 Web 服务器表现一致。</p>
+<hr>
+<h3 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h3><h4 id="部署环境"><a href="#部署环境" class="headerlink" title="部署环境"></a>部署环境</h4><p>VPS：<a href="https://www.oracle.com/cn/cloud/free/" target="_blank" rel="noopener">Oracle Cloud</a><br>系统：<a href="https://centos.org/" target="_blank" rel="noopener">CentOS 7</a><br>域名：解析 VPS 的 ip 地址，以 example.com 为例</p>
+<h4 id="部署-BBR"><a href="#部署-BBR" class="headerlink" title="部署 BBR"></a>部署 BBR</h4><p>安装 BBR 需要的依赖</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">yum install -y grub2</span><br><span class="line">grub2-mkconfig -o <span class="regexp">/boot/g</span>rub2<span class="regexp">/grub.cfg</span></span><br></pre></td></tr></table></figure>
+
+<p>运行<a href="https://github.com/chiakge/Linux-NetSpeed" target="_blank" rel="noopener">BBR 脚本</a></p>
+<figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">wget -<span class="keyword">N</span> --<span class="keyword">no</span>-check-certificate <span class="string">"https://raw.githubusercontent.com/chiakge/Linux-NetSpeed/master/tcp.sh"</span></span><br><span class="line">chmod +x tcp.<span class="keyword">sh</span></span><br><span class="line">./tcp.<span class="keyword">sh</span></span><br></pre></td></tr></table></figure>
+
+<p>输入 10 系统配置优化，输入 Y 回车重启<br>重启后再次执行脚本安装内核</p>
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">./tcp.sh</span></span><br></pre></td></tr></table></figure>
+
+<p>输入 2 安装 BBRPLUS 版内核，输入 Y 回车重启<br>如果在安装内核环节出现这样一张图，<strong>注意选择 NO</strong><br><img src="https://cdn.nlark.com/yuque/0/2020/png/1680687/1594183342815-bb98b506-d152-49a3-b082-c3994885555e.png#align=left&display=inline&height=686&margin=%5Bobject%20Object%5D&name=image.png&originHeight=686&originWidth=1037&size=56653&status=done&style=none&width=1037" alt="image.png"><br>重启后再次执行脚本启动 BBRPLUS</p>
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">./tcp.sh</span></span><br></pre></td></tr></table></figure>
+
+<p>输入 7，使用 BBRPLUS 版加速<br><img src="https://cdn.nlark.com/yuque/0/2020/png/1680687/1593767412933-f45b7c9d-6631-4166-8a98-bdac8aea54d7.png#align=left&display=inline&height=64&margin=%5Bobject%20Object%5D&name=image.png&originHeight=128&originWidth=596&size=32508&status=done&style=none&width=298" alt="image.png"></p>
+<h4 id="安装依赖"><a href="#安装依赖" class="headerlink" title="安装依赖"></a>安装依赖</h4><p>安装<a href="https://github.com/acmesh-official/acme.sh" target="_blank" rel="noopener">acme.sh</a>和 Trojan 需要的依赖</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum <span class="keyword">install</span> -y socat cronie psmisc curl xz nano nginx</span><br></pre></td></tr></table></figure>
+
+<p>启动 crontab</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">systemctl <span class="keyword">start</span> crond</span><br><span class="line">systemctl <span class="keyword">enable</span> crond</span><br></pre></td></tr></table></figure>
+
+<p>开启防火墙 80、443 端口</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">firewall-<span class="keyword">cmd</span><span class="bash"> --permanent --add-port=80/tcp</span></span><br><span class="line">firewall-<span class="keyword">cmd</span><span class="bash"> --permanent --add-port=443/tcp</span></span><br><span class="line">firewall-<span class="keyword">cmd</span><span class="bash"> --reload</span></span><br><span class="line">firewall-<span class="keyword">cmd</span><span class="bash"> --list-all</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2020/jpeg/1680687/1593673386072-16ea0b0f-c5f8-41ea-9e3f-8f17272ed68a.jpeg#align=left&display=inline&height=578&margin=%5Bobject%20Object%5D&name=firewall-cmd%20--permanent%20--add-port%3D80tcp.jpg&originHeight=578&originWidth=694&size=180503&status=done&style=none&width=694" alt="firewall-cmd --permanent --add-port=80tcp.jpg"><br>关闭 SELINUX</p>
+<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nano /etc/selinux/<span class="built_in">config</span></span><br></pre></td></tr></table></figure>
+
+<p>如图注释 SELINUX=enforcing</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">SELINUX</span>=disabled</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2020/png/1680687/1593673361834-cbea90ae-191f-475d-83a4-ce9de49bff7a.png#align=left&display=inline&height=783&margin=%5Bobject%20Object%5D&name=GNU%20nano%202.3.1.png&originHeight=1346&originWidth=1282&size=147205&status=done&style=none&width=746" alt="GNU nano 2.3.1.png"><br>重启</p>
+<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">reboot</span></span><br></pre></td></tr></table></figure>
+
+<p>查看 SELINUX 状态</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="regexp">/usr/</span>sbin<span class="regexp">/sestatus</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2020/png/1680687/1593673408761-af690770-79d0-48f7-a9af-738087bf45ee.png#align=left&display=inline&height=56&margin=%5Bobject%20Object%5D&name=usrsbinsestatus.png&originHeight=56&originWidth=584&size=13708&status=done&style=none&width=584" alt="usrsbinsestatus.png"></p>
+<h4 id="配置-Nginx"><a href="#配置-Nginx" class="headerlink" title="配置 Nginx"></a>配置 Nginx</h4><h5 id="关闭默认虚拟主机"><a href="#关闭默认虚拟主机" class="headerlink" title="关闭默认虚拟主机"></a>关闭默认虚拟主机</h5><p>在 CentOS 系列系统中，Nginx 的虚拟主机配置文件在<code>/etc/nginx/conf.d/</code>文件夹中以<code>.conf</code>后缀保存，写入之后就可以使用。默认虚拟主机集成在 Nginx 配置文件<code>/etc/nginx/nginx.conf</code>中，需要打开将其中的 server 块删除，否则会冲突。</p>
+<p>在<code>/etc/nginx/</code>中添加两个文件夹</p>
+<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> /etc/nginx/sites-<span class="built_in">available</span></span><br><span class="line"><span class="built_in">mkdir</span> /etc/nginx/sites-enabled</span><br></pre></td></tr></table></figure>
+
+<p>执行如下命令使用 nano 打开 Nginx 配置文件，删除其中 server 块，并添加对<code>/etc/nginx/sites-enabled/</code>文件夹的索引</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nano <span class="regexp">/etc/</span>nginx<span class="regexp">/nginx.conf</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">include</span> <span class="regexp">/etc/</span>nginx<span class="regexp">/sites-enabled/</span>*;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2020/jpeg/1680687/1593673454039-89d3b53d-a911-4211-a1e0-1d452874ca0b.jpeg#align=left&display=inline&height=1392&margin=%5Bobject%20Object%5D&name=GNU%20nano%202.3.1.jpg&originHeight=1392&originWidth=1290&size=583076&status=done&style=none&width=1290" alt="GNU nano 2.3.1.jpg"><br>CentOS 反向代理需要配置 SELinux 允许 httpd 模块可以联网，否则服务器会返回 502 错误</p>
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">setsebool -P httpd_can_network_<span class="keyword">connect</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="写入虚拟主机到-Nginx-配置文件"><a href="#写入虚拟主机到-Nginx-配置文件" class="headerlink" title="写入虚拟主机到 Nginx 配置文件"></a>写入虚拟主机到 Nginx 配置文件</h5><ol>
+<li>添加虚拟主机，example.com 改为自己的域名</li>
+</ol>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nano <span class="regexp">/etc/</span>nginx<span class="regexp">/sites-available/</span>example.com</span><br></pre></td></tr></table></figure>
+
+<p>基于综述部分讲解的 Trojan 工作原理，现给定 Nginx 虚拟主机如下所示。这些虚拟主机可以直接拷贝到上面虚拟主机配置文件中再修改为你自己的，其中要修改的地方包括</p>
+<ol>
+<li>第 4 行的<code>server_name</code>的值 example.com 改为自己的域名</li>
+<li>第 7 行的<code>proxy_pass</code>随便指向一个没有敏感信息的网站都可以，这就是你要反向代理的网站，这里我是用的是 IETF 的地址</li>
+<li>第 15 行的<code>server_name</code>的值改为 VPS 的 IP</li>
+<li>第 17 行 example.com 改为自己的域名</li>
+</ol>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">127.0.0.1:80</span> default_server;</span><br><span class="line"></span><br><span class="line">    <span class="attribute">server_name</span> example.com;</span><br><span class="line"></span><br><span class="line">    <span class="attribute">location</span> / &#123;</span><br><span class="line">        <span class="attribute">proxy_pass</span> https://www.ietf.org;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">127.0.0.1:80</span>;</span><br><span class="line"></span><br><span class="line">    <span class="attribute">server_name</span> VPS的IP地址;</span><br><span class="line"></span><br><span class="line">    <span class="attribute">return</span> <span class="number">301</span> https://example.com<span class="variable">$request_uri</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">0.0.0.0:80</span>;</span><br><span class="line">    <span class="attribute">listen</span> [::]:<span class="number">80</span>;</span><br><span class="line"></span><br><span class="line">    <span class="attribute">server_name</span> _;</span><br><span class="line"></span><br><span class="line">    <span class="attribute">location</span> / &#123;</span><br><span class="line">        <span class="attribute">return</span> <span class="number">301</span> https://<span class="variable">$host</span><span class="variable">$request_uri</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="attribute">location</span> /.well-known/acme-challenge &#123;</span><br><span class="line">       <span class="attribute">root</span> /var/www/acme-challenge;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2020/jpeg/1680687/1594179191255-3a929529-3600-4390-818a-7214c9ff6560.jpeg#align=left&display=inline&height=695&margin=%5Bobject%20Object%5D&name=GNU%20nano%202.3.1_%E5%89%AF%E6%9C%AC.jpg&originHeight=1390&originWidth=1482&size=155665&status=done&style=none&width=741" alt="GNU nano 2.3.1_副本.jpg"><br>解释一下这些虚拟主机的一些细节：第一个 server 接收来自 Trojan 的流量，与上面 Trojan 配置文件对应；第二个 server 也是接收来自 Trojan 的流量，但是这个流量尝试使用 IP 而不是域名访问服务器，所以将其认为是异常流量，并重定向到域名；第三个 server 接收除 127.0.0.1:80 外的所有 80 端口的流量并重定向到 443 端口，这样便开启了全站 https，可有效的防止恶意探测，其中<code>.well-known</code>是为申请证书所准备的，下文用到的时候自然明白。注意到，第一个和第二个 server 对应综述部分原理图中的蓝色数据流，第三个 server 对应综述部分原理图中的红色数据流，综述部分原理图中的绿色数据流不会流到 Nginx</p>
+<ol start="2">
+<li>使能配置文件，example.com 改为自己的域名</li>
+</ol>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ln -s <span class="regexp">/etc/</span>nginx<span class="regexp">/sites-available/</span>example.com<span class="regexp">/etc/</span>nginx<span class="regexp">/sites-enabled/</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="启动-Nginx"><a href="#启动-Nginx" class="headerlink" title="启动 Nginx"></a>启动 Nginx</h5><figure class="highlight maxima"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">systemctl <span class="built_in">restart</span> nginx</span><br><span class="line">systemctl <span class="built_in">status</span> nginx</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2020/jpeg/1680687/1593673518571-e9bee900-6c41-42cf-9343-c4357f4f25fe.jpeg#align=left&display=inline&height=540&margin=%5Bobject%20Object%5D&name=systemctl%20restart%20nginx.jpg&originHeight=540&originWidth=1454&size=547649&status=done&style=none&width=1454" alt="systemctl restart nginx.jpg"></p>
+<h4 id="配置证书"><a href="#配置证书" class="headerlink" title="配置证书"></a>配置证书</h4><p>当从 Let’s Encrypt 获得证书时，Let’s Encrypt 会验证证书中域名的控制权。一般采用 HTTP-01 或 DNS-01 方式来验证，详情参考官方文档<a href="https://letsencrypt.org/zh-cn/docs/challenge-types/" target="_blank" rel="noopener">验证方式</a>。本文使用 HTTP-01 方式验证，若需要使用 DNS-01 方式验证，参考 acme.sh 官方文档<a href="https://github.com/acmesh-official/acme.sh/wiki/dnsapi" target="_blank" rel="noopener">How to use DNS API</a></p>
+<h5 id="创建证书文件夹"><a href="#创建证书文件夹" class="headerlink" title="创建证书文件夹"></a>创建证书文件夹</h5><figure class="highlight maxima"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> -p /etc/letsencrypt/live</span><br><span class="line"><span class="built_in">mkdir</span> -p /<span class="built_in">var</span>/www/acme-challenge</span><br></pre></td></tr></table></figure>
+
+<p>#####</p>
+<h5 id="安装-acme-sh-自动管理-CA-证书脚本"><a href="#安装-acme-sh-自动管理-CA-证书脚本" class="headerlink" title="安装 acme.sh 自动管理 CA 证书脚本"></a>安装 acme.sh 自动管理 CA 证书脚本</h5><p>安装完 acme.sh 之后要重新登录，否则无法识别出 acme.sh 命令</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl  [<span class="string">https://get.acme.sh</span>](<span class="link">https://get.acme.sh</span>) | sh</span><br></pre></td></tr></table></figure>
+
+<h5 id="测试申请证书"><a href="#测试申请证书" class="headerlink" title="测试申请证书"></a>测试申请证书</h5><p><code>--staging</code>参数申请的证书只作为测试用，客户端是无法认证通过的，example.com 改为自己的域名</p>
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">acme.sh <span class="params">--issue</span> -d example.com -w <span class="string">/var/www/acme-challenge</span> <span class="params">--debug</span> <span class="params">--log</span> <span class="params">--staging</span></span><br></pre></td></tr></table></figure>
+
+<p>如图提示即申请成功<br>![<a href="https://cdn.nlark.com/yuque/0/2020/png/1680687/1594179426833-7c19e963-bdc1-471d-a6a1-d6acfcfdf31a.png#align=left&display=inline&height=62&margin=%5Bobject%20Object%5D&name=%5BThu%20Jul_%E5%89%AF%E6%9C%AC.png&originHeight=124&originWidth=1498&size=89918&status=done&style=none&width=749" target="_blank" rel="noopener">Thu Jul_副本.png</a></p>
+<h5 id="申请证书"><a href="#申请证书" class="headerlink" title="申请证书"></a>申请证书</h5><figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">acme.sh <span class="params">--issue</span> -d example.com -w <span class="string">/var/www/acme-challenge</span> <span class="params">--force</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="安装证书"><a href="#安装证书" class="headerlink" title="安装证书"></a>安装证书</h5><p>使用 acme.sh 将证书安装到<code>certfiles</code>目录，这样 acme.sh 更新证书的时候会自动将新的证书安装到这里</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">acme.sh --install-cert -d example.com --key-<span class="keyword">file</span> <span class="regexp">/etc/</span>letsencrypt<span class="regexp">/live/</span><span class="keyword">private</span>.key --fullchain-<span class="keyword">file</span> <span class="regexp">/etc/</span>letsencrypt<span class="regexp">/live/</span>certificate.crt</span><br></pre></td></tr></table></figure>
+
+<h5 id="配置自动更新"><a href="#配置自动更新" class="headerlink" title="配置自动更新"></a>配置自动更新</h5><p>配置 acme.sh 自动更新和自动更新证书</p>
+<figure class="highlight brainfuck"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">acme</span><span class="string">.</span><span class="comment">sh </span> --<span class="comment">upgrade </span> --<span class="comment">auto</span><span class="literal">-</span><span class="comment">upgrade</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="配置-Trojan"><a href="#配置-Trojan" class="headerlink" title="配置 Trojan"></a>配置 Trojan</h4><h5 id="安装-Trojan"><a href="#安装-Trojan" class="headerlink" title="安装 Trojan"></a>安装 Trojan</h5><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">bash -c "$(curl -fsSL [<span class="string">https://raw.githubusercontent.com/trojan-gfw/trojan-quickstart/master/trojan-quickstart.sh)"</span>](<span class="link">https://raw.githubusercontent.com/trojan-gfw/trojan-quickstart/master/trojan-quickstart.sh</span>)%22)</span><br><span class="line">cp /usr/local/etc/trojan/config.json /usr/local/etc/trojan/config.json.bak</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2020/png/1680687/1593673670747-963341a4-c73c-407c-91c3-3279966efae5.png#align=left&display=inline&height=314&margin=%5Bobject%20Object%5D&name=Entering%20temp%20directory%20tmptmp.CJSMDRsSwC.png&originHeight=314&originWidth=1682&size=96071&status=done&style=none&width=1682" alt="Entering temp directory tmptmp.CJSMDRsSwC.png"></p>
+<p>修改 Trojan 的配置文件，定位到<code>password</code>、<code>cert</code>和<code>key</code>并修改</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo nano <span class="regexp">/usr/</span>local<span class="regexp">/etc/</span>trojan<span class="regexp">/config.json</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="regexp">/etc/</span>letsencrypt<span class="regexp">/live/</span>certificate.crt</span><br><span class="line"><span class="regexp">/etc/</span>letsencrypt<span class="regexp">/live/</span><span class="keyword">private</span>.key</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2020/png/1680687/1594179510630-08f2821f-a1ea-40a1-8e86-05745b432bc8.png#align=left&display=inline&height=649&margin=%5Bobject%20Object%5D&name=GNU%20nano%202.3.1_%E5%89%AF%E6%9C%AC.png&originHeight=1298&originWidth=1412&size=215804&status=done&style=none&width=706" alt="GNU nano 2.3.1_副本.png"></p>
+<h5 id="启动-Trojan"><a href="#启动-Trojan" class="headerlink" title="启动 Trojan"></a>启动 Trojan</h5><p><strong>使用 systemd 启动 Trojan</strong></p>
+<figure class="highlight maxima"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">systemctl <span class="built_in">restart</span> trojan</span><br><span class="line">systemctl <span class="built_in">status</span> trojan</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2020/png/1680687/1593673767128-895acad2-f323-4515-9ed1-9d0e2342644c.png#align=left&display=inline&height=400&margin=%5Bobject%20Object%5D&name=systemctl%20restart%20trojan.png&originHeight=400&originWidth=1610&size=123648&status=done&style=none&width=1610" alt="systemctl restart trojan.png"></p>
+<h5 id="更新证书"><a href="#更新证书" class="headerlink" title="更新证书"></a>更新证书</h5><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="builtin-name">export</span> <span class="attribute">EDITOR</span>=nano</span><br><span class="line">crontab -e</span><br></pre></td></tr></table></figure>
+
+<p>在文件末尾添加一行如下，该行表示每个月 1 号的时候运行命令</p>
+<figure class="highlight basic"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">0 </span><span class="number">0</span> <span class="number">1</span> * * killall -s SIGUSR1 trojan</span><br></pre></td></tr></table></figure>
+
+<p>查看 crontab 是否生效</p>
+<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">crontab -l</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2020/png/1680687/1593673895742-0077647f-1740-447d-80a3-dafd6005370a.png#align=left&display=inline&height=94&margin=%5Bobject%20Object%5D&name=51%200%20%20%20%20root.acme.shacme.sh.png&originHeight=94&originWidth=1120&size=25402&status=done&style=none&width=1120" alt="51 0    root.acme.shacme.sh.png"></p>
+<h5 id="更新-Trojan"><a href="#更新-Trojan" class="headerlink" title="更新 Trojan"></a>更新 Trojan</h5><p>如果 Trojan 版本有更新（可以去<a href="https://github.com/trojan-gfw/trojan/releases" target="_blank" rel="noopener">这里</a>查看是否有更新），那么使用本教程搭建的服务器端更新 Trojan 版本只需要两条条命令即可，不过要注意的是，第一条命令会提示是否覆盖配置文件，如果没有必要请输入 n，否则配置文件将会被覆盖</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">bash -c "$(curl -fsSL [<span class="string">https://raw.githubusercontent.com/trojan-gfw/trojan-quickstart/master/trojan-quickstart.sh)"</span>](<span class="link">https://raw.githubusercontent.com/trojan-gfw/trojan-quickstart/master/trojan-quickstart.sh</span>)%22)</span><br><span class="line">systemctl restart trojan</span><br></pre></td></tr></table></figure>
+
+<h4 id="配置开机自启"><a href="#配置开机自启" class="headerlink" title="配置开机自启"></a>配置开机自启</h4><p>配置 Trojan 和 Nginx 开机自启</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">systemctl <span class="builtin-name">enable</span> trojan</span><br><span class="line">systemctl <span class="builtin-name">enable</span> nginx</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/posts/guxb5f/" rel="next" title="musicAPI：聚合QQ音乐、网易云 搜索API">
+      musicAPI：聚合QQ音乐、网易云 搜索API <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#综述"><span class="nav-number">1.</span> <span class="nav-text">综述</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Trojan-工作原理浅析"><span class="nav-number">1.1.</span> <span class="nav-text">Trojan 工作原理浅析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#部署"><span class="nav-number">2.</span> <span class="nav-text">部署</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#部署环境"><span class="nav-number">2.1.</span> <span class="nav-text">部署环境</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#部署-BBR"><span class="nav-number">2.2.</span> <span class="nav-text">部署 BBR</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#安装依赖"><span class="nav-number">2.3.</span> <span class="nav-text">安装依赖</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#配置-Nginx"><span class="nav-number">2.4.</span> <span class="nav-text">配置 Nginx</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#关闭默认虚拟主机"><span class="nav-number">2.4.1.</span> <span class="nav-text">关闭默认虚拟主机</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#写入虚拟主机到-Nginx-配置文件"><span class="nav-number">2.4.2.</span> <span class="nav-text">写入虚拟主机到 Nginx 配置文件</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#启动-Nginx"><span class="nav-number">2.4.3.</span> <span class="nav-text">启动 Nginx</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#配置证书"><span class="nav-number">2.5.</span> <span class="nav-text">配置证书</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#创建证书文件夹"><span class="nav-number">2.5.1.</span> <span class="nav-text">创建证书文件夹</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#安装-acme-sh-自动管理-CA-证书脚本"><span class="nav-number">2.5.2.</span> <span class="nav-text">安装 acme.sh 自动管理 CA 证书脚本</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#测试申请证书"><span class="nav-number">2.5.3.</span> <span class="nav-text">测试申请证书</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#申请证书"><span class="nav-number">2.5.4.</span> <span class="nav-text">申请证书</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#安装证书"><span class="nav-number">2.5.5.</span> <span class="nav-text">安装证书</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#配置自动更新"><span class="nav-number">2.5.6.</span> <span class="nav-text">配置自动更新</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#配置-Trojan"><span class="nav-number">2.6.</span> <span class="nav-text">配置 Trojan</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#安装-Trojan"><span class="nav-number">2.6.1.</span> <span class="nav-text">安装 Trojan</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#启动-Trojan"><span class="nav-number">2.6.2.</span> <span class="nav-text">启动 Trojan</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#更新证书"><span class="nav-number">2.6.3.</span> <span class="nav-text">更新证书</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#更新-Trojan"><span class="nav-number">2.6.4.</span> <span class="nav-text">更新 Trojan</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#配置开机自启"><span class="nav-number">2.7.</span> <span class="nav-text">配置开机自启</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">3</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">emtry</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+  <div style="display: none;">
+    <script src="//s95.cnzz.com/z_stat.php?id=1279060443&web_id=1279060443"></script>
+  </div>
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
